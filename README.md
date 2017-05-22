@@ -84,7 +84,7 @@ Communication, Doctor	|91.76	|92.53	|0.77
 If being in the VBP program isn't causing the hospitals to have worse services, then there is likely to be another unobserved factor that's driving these differences. The VBP program likely attracts a certain type of hospital, for reasons that are exogenous to this data set, and this selection into the VBP program might explain these observed differences. 
 
 ## Methodology and Results (pt. 2: determinants of overall score)
-In this section, I look at what determines the overall score for the hospital. To do this, I examine how the different scoring dimensions affect how the patient rates the hospital overall. Because the overall rating is a separate question, rather than a construction from other questions, we can see what aspects affect the overall score the most. This is estimated by the regression equation, below.
+In this section, I look at what determines the overall score for the hospital. To do this, I examine how the different scoring dimensions affect how the patient rates the hospital overall. Because the overall rating is a separate question, rather than a construction from other questions, we can see which of the aspects affects the patient's view of the overall score the most. This is estimated by the regression equation, below.
 
 
 
