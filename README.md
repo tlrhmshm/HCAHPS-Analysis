@@ -84,7 +84,18 @@ Communication, Doctor	|91.76	|92.53	|0.77
 If being in the VBP program isn't causing the hospitals to have worse services, then there is likely to be another unobserved factor that's driving these differences. The VBP program likely attracts a certain type of hospital, for reasons that are exogenous to this data set, and this selection into the VBP program might explain these observed differences. 
 
 ## Methodology and Results (pt. 2: determinants of overall score)
-In this section, I look at what determines the overall score for the hospital. To do this, I examine how the different scoring dimensions affect how the patient rates the hospital overall. Because the overall rating is a separate question, rather than a construction from other questions, we can see which of the aspects affects the patient's view of the overall score the most. This is estimated by the regression equation, below.
+In this section, I look at what determines the overall score for the hospital. To do this, I examine how the different scoring dimensions affect how the patient rates the hospital overall using the 2017 data. Because the overall rating is a separate question, rather than a construction from other questions, we can see which of the aspects affects the patient's view of the overall score the most. This is estimated by the regression equation, below.
 
+![regression1](https://cloud.githubusercontent.com/assets/25534898/26292892/a85a6afc-3e87-11e7-97a3-6dccaa1a7b34.png)
 
+The state binary variables control for any time-invariant characteristics of the state, while the array of linear mean score dimensions contains all nine ratings. The outcome of this regression is displayed below, with the different ratings on the y-axis, their respective bars corresponding to their beta coefficient, and their shade indicating their statistical significance (lighter shades are more statistically significant). 
 
+![figure1](https://cloud.githubusercontent.com/assets/25534898/26292740/71c03d24-3e86-11e7-9ef1-41fa9013ea01.png)
+
+The interpretation of this regression is that for every increase in 1 of the linear mean score of a dimension, it will increase the overall score of the hospital by that dimension's corresponding beta coefficient. E.g., an increase of 1 point in Care Transition increases the overall hospital rating by a little bit more than 0.3. 
+
+This is interesting in that it's clear that patients value some aspects of the hospital more than others, and satisfaction in certain categories will increase their overall perception of the hospital more. The two standouts are communication with nurses and transition in care.
+
+## Conclusion and Discussion
+
+There are three main take-aways I had from this 
