@@ -1,11 +1,11 @@
 # DH-Homework
 
 ## Introduction & Summary
-This report contains an exploratory analysis of hospital characteristics and their ratings, using scores from the Hospital Consumer Assessment of Healthcare Providers and Systems (HCAHPS). Specifically, this report looks at attributes of hospitals that clients care most about, and it also focuses on the relationship between a hospital's participation in the Value-Based Purchasing (VBP) program and the quality of care they provide, as defined by the dimensions provided in the HCAHPS. VBP programs create incentives for more client-centered care through value-based incentive payments that are dependent on the quality of the patient's experience. 
+This report contains an exploratory analysis of hospital characteristics and their ratings, using scores from the Hospital Consumer Assessment of Healthcare Providers and Systems (HCAHPS). Specifically, this report looks at attributes of hospitals that clients care most about, and it also focuses on the relationship between a hospital's participation in the Value-Based Purchasing (VBP) program and the quality of care they provide, as defined by the dimensions provided in the HCAHPS. VBP programs create incentives for more client-centered care through value-based incentive payments that depend partially on the quality of the patient's experience. 
 
-A direct comparison using 2017 scores between hospitals participating in a VBP program and hospitals that are not shows that VBP Hospitals are comparatively worse. However, further analysis shows that participation in a VBP program has ambiguous if not negligible affects on hospitals' scores. 
+A direct comparison using 2017 scores between hospitals participating in a VBP program and hospitals that are not, shows that VBP Hospitals are comparatively worse. However, further analysis shows that participation in a VBP program has ambiguous if not negligible affects on hospitals' scores. 
 
-Through regression analysis, the most important factor in a patient's overall score of a hospital is the quality of their care transition. Interestingly, care transition is the lowest rated dimension on average. The most significant determinant in a client's perception of the hospital is also where healthcare is falling short, according to the patients.
+Through regression analysis, one of the most important factors in a patient's overall score of a hospital, aside from communication from nurses, is the quality of their care transition. Interestingly, care transition is also the second lowest rated dimension on average. This shows that one of the most significant determinant in a client's perception of the hospital is also an area where healthcare is falling short, according to the patients.
 
 The following sections include an overview of the data, the methodology and results, and a brief conclusion and discussion.
 
@@ -84,7 +84,7 @@ Communication, Doctor	|91.76	|92.53	|0.77
 If being in the VBP program isn't causing the hospitals to have worse services, then there is likely to be another unobserved factor that's driving these differences. The VBP program likely attracts a certain type of hospital, for reasons that are exogenous to this data set, and this selection into the VBP program might explain these observed differences. 
 
 ## Methodology and Results (pt. 2: determinants of overall score)
-
+In this section, I look at what determines the overall score for the hospital. To do this, I examine how the different scoring dimensions affect how the patient rates the hospital overall. Because the overall rating is a separate question, rather than a construction from other questions, we can see what aspects affect the overall score the most. This is estimated by the regression equation, below.
 
 
 
