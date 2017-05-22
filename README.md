@@ -84,7 +84,7 @@ Communication, Doctor	|91.76	|92.53	|0.77
 If being in the VBP program isn't causing the hospitals to have worse services, then there is likely to be another unobserved factor that's driving these differences. The VBP program likely attracts a certain type of hospital, for reasons that are exogenous to this data set, and this selection into the VBP program might explain these observed differences. 
 
 ## Methodology and Results (pt. 2: determinants of overall score)
-In this section, I look at what determines the overall score for the hospital. To do this, I examine how the different scoring dimensions affect how the patient rates the hospital overall using the 2017 data. Because the overall rating is a separate question, rather than a construction from other questions, we can see which of the aspects affects the patient's view of the overall score the most. This is estimated by the regression equation, below.
+In this section, I look at what determines the overall score for the hospital. To do this, I examined how the different scoring dimensions affect the patient's overall rating of the hospital using the 2017 data. Because the overall rating is a separate question, rather than a construction from other questions, we can see which of the aspects affects the patient's view of the overall score the most. This is estimated by the regression equation, below.
 
 ![regression1](https://cloud.githubusercontent.com/assets/25534898/26292892/a85a6afc-3e87-11e7-97a3-6dccaa1a7b34.png)
 
@@ -98,4 +98,15 @@ This is interesting in that it's clear that patients value some aspects of the h
 
 ## Conclusion and Discussion
 
-There are three main take-aways I had from this 
+There are three main take-aways I had from this introductory analysis:
+
+**1: The Data**
+The categories and questions that the data covers are very broad. While at a high level you could determine general areas that a hospital has poor reviews in, you wouldn't be able to diagnose the issue properly. I.e., you can tell somebody that they swing a golf club very poorly, but it would be more constructive to tell them to keep their head down, shoulders square, etc. It would be more useful for analysis, rather than having unspecific survey data, to have data that is 1) real time rather than retrospective, and 2) specific feedback. A platform that allows this would allow providers to identify actionable changes, instead of just identifying high level trends. 
+
+**2: VBP Hospitals**
+Participation in VBP programs does not seem to cause hospitals to provide better or worse care than before. 
+
+**3: Transition of Care**
+Transition of care was on average one of the worst scores, at around 82. It was also one of the most significant and strongest influences on the patient's overall hospital rating. Attempting to raise this score through better client services could be the most lucrative for the provider, as it has lots of room to improve and influences the overall hospital rating significantly. 
+
+
