@@ -1,4 +1,6 @@
-# DH-Homework
+# HCAHPS/VBP Assignment
+
+This was an interview assignment for a company that sells a service aimed at healthcare clinics that connects patients with the healthcare clinics via the combined use of their software platform and actual workers that interact with the patients, on-site and remotely. The following analysis is tailored to be related to such a service. 
 
 ## Introduction & Summary
 This report contains an exploratory analysis of hospital characteristics and their ratings, using scores from the Hospital Consumer Assessment of Healthcare Providers and Systems (HCAHPS). Specifically, this report looks at attributes of hospitals that clients care most about, and it also focuses on the relationship between a hospital's participation in the Value-Based Purchasing (VBP) program and the quality of care they provide, as defined by the dimensions provided in the HCAHPS. VBP programs create incentives for more client-centered care through value-based incentive payments that depend partially on the quality of the patient's experience. 
