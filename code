@@ -1,0 +1,459 @@
+## Tyler Hamashima
+## Assignment
+
+
+#####################################################################
+############## Set up workspace & download data
+
+# Set working directory file path
+path <- "/path/"
+
+## Install & load necessary packages
+
+# Package to check if packages need to be downloaded
+if (!require("pacman")) install.packages("pacman")
+
+# Load packages
+pacman::p_load(dplyr, lubridate, ggplot2, tidyr, ggthemes, stringr, broom)
+
+## Import data
+
+# HCAHPS
+hcahps_filename <- "Patient_survey__HCAHPS__-_Hospital.csv"
+hca <- read.csv(paste(path, hcahps_filename, sep = ""),
+                  sep = ",", header = TRUE, fill = TRUE)
+# Value Based Purchasing
+vbp_filename <- paste("Hospital_Value-Based_Purchasing__HVBP____",
+                      "Patient_Experience_of_Care_Domain_Scores__HCAHPS_.csv", 
+                      sep = "")
+vbp <- read.csv(paste(path, vbp_filename, sep = ""),
+                  sep = ",", header = TRUE, fill = TRUE)
+
+
+
+#####################################################################
+############## Clean & HCAHPS Reshape Data
+
+#### Selects and renames variables from HCAHPS dataset
+#### Creates new dataset where each row is unique hospital,
+####         and has each question as a column.
+
+# Renaming / selecting variables
+hca <- hca %>% select(id = Provider.ID,
+                      name = Hospital.Name,
+                      address = Address,
+                      city = City,
+                      state = State,
+                      zip = ZIP.Code,
+                      county = County.Name,
+                      question = HCAHPS.Question,
+                      descrip = HCAHPS.Answer.Description,
+                      stars = Patient.Survey.Star.Rating,
+                      linmean = HCAHPS.Linear.Mean.Value,
+                      perc = HCAHPS.Answer.Percent,
+                      response_rate = Survey.Response.Rate.Percent
+                      )
+# Changing variable types
+hca <- hca %>% mutate(city = as.character(city),
+                      name = as.character(name),
+                      stars = as.character(stars),
+                      linmean = as.character(linmean),
+                      perc = as.character(perc),
+                      response_rate = as.numeric(response_rate))
+
+### Creating wide dataset
+
+# Create single variable that's the response to the question
+notapp <- "Not Applicable"
+notav <- "Not Available"
+hca <- hca %>% mutate(stars = ifelse(stars == notapp | stars == notav, NA, stars),
+                      linmean = ifelse(linmean == notapp | linmean == notav, NA, linmean),
+                      perc = ifelse(perc == notapp | perc == notav, NA, perc))
+hca <- hca %>% 
+  mutate(answer = ifelse(is.na(stars) == TRUE & is.na(linmean) == TRUE, perc, 
+                         ifelse(is.na(linmean) == TRUE, stars, linmean)))
+
+# Remove any symbols from question (to be used as column names)
+hca$descrip <- str_replace_all(str_replace_all(hca$descrip, "\"", ""), " ", "")
+hca$descrip <- str_replace_all(str_replace_all(hca$descrip, "\\(", ""), "\\)", "")
+hca$descrip <- str_replace_all(str_replace_all(hca$descrip, ",", ""), "-", "")
+
+# Give each question it's own column
+hca_spread <- hca %>% spread(descrip, answer)
+
+# Create dataset where each hospital has one row
+hca_wide <- hca %>% select(id, name, state, county)
+hca_wide <- unique(hca_wide)
+
+# Create list of column names to be used below
+qs <- names(hca_spread)
+
+# Function to return the dataset with only column of interest, no missing values
+newcol <- function(colname){
+  new1 <- hca_spread %>% select(id, matches(colname))
+  new1 <- new1 %>% na.omit
+  return(new1)
+}
+# Join column to wide dataset via "id"
+for(n in 13:67){
+  hca_wide <- left_join(hca_wide, newcol(qs[[n]]), by = "id")
+  print(paste("column \"", qs[[n]], "\" joined", sep = ""))
+}
+
+
+#####################################################################
+############## Identify hospitals participating in VBP
+
+# Select variables of interest, 
+#   create indicator that it's value based purchasing
+vbp <- vbp %>% select(id = Provider.Number) %>% 
+  mutate(vbp17 = 1)
+vbp <- unique(vbp)
+
+# Join on the wide dataset via "id"
+hca_wide <- left_join(hca_wide, vbp, by = "id")
+hca_wide <- hca_wide %>% mutate(vbp17 = ifelse(is.na(vbp17) == TRUE, 0,1))
+  
+hca_wide$valuebp <- as.factor(hca_wide$valuebp)
+
+
+#####################################################################
+############## initial analysis pt 1: vbp vs non-vbp
+# 
+# # visualize dif. in overall rating, vbp vs non-vbp
+# hca_wide %>% filter(is.na(Overallhospitalratinglinearmeanscore) == FALSE) %>% 
+#   ggplot(aes(x = valuebp, y = as.numeric(Overallhospitalratinglinearmeanscore), col = valuebp)) +
+#   geom_boxplot(alpha = 1, lwd = 0.5)
+# 
+# # dif in recommendation
+# hca_wide %>% filter(is.na(Recommendhospitallinearmeanscore) == FALSE) %>% 
+#   ggplot(aes(x = valuebp, y = as.numeric(Recommendhospitallinearmeanscore), col = valuebp)) +
+#   geom_boxplot(alpha = 1, lwd = 0.5)
+# 
+# # dif in nurse communication
+# hca_wide %>% filter(is.na(Nursecommunicationlinearmeanscore) == FALSE) %>% 
+#   ggplot(aes(x = valuebp, y = as.numeric(Nursecommunicationlinearmeanscore), col = valuebp)) +
+#   geom_boxplot(alpha = 1, lwd = 0.5)
+# 
+# # dif in communication about medicine
+# hca_wide %>% filter(is.na(Communicationaboutmedicineslinearmeanscore) == FALSE) %>% 
+#   ggplot(aes(x = valuebp, y = as.numeric(Communicationaboutmedicineslinearmeanscore), col = valuebp)) +
+#   geom_boxplot(alpha = 1, lwd = 0.5)
+# 
+# # dif in staff responsiveness
+# hca_wide %>% filter(is.na(Staffresponsivenesslinearmeanscore) == FALSE) %>% 
+#   ggplot(aes(x = valuebp, y = as.numeric(Staffresponsivenesslinearmeanscore), col = valuebp)) +
+#   geom_boxplot(alpha = 1, lwd = 0.5)
+# 
+  
+#####################################################################
+############## bringing in 2015 data
+
+
+
+#####################################################################
+#This is the same script but to clean the 2015 HCAHPS dataset
+
+# HCAHPS 2015
+hcahps_filename15 <- "hcahps15.csv"
+hca2 <- read.csv(paste(path, hcahps_filename15, sep = ""),
+                 sep = ",", header = TRUE, fill = TRUE)
+hca2 <- hca2 %>% select(id = Provider.ID,
+                        name = Hospital.Name,
+                        address = Address,
+                        city = City,
+                        state = State,
+                        zip = ZIP.Code,
+                        county = County.Name,
+                        question = HCAHPS.Question,
+                        descrip = HCAHPS.Answer.Description,
+                        stars = Patient.Survey.Star.Rating,
+                        linmean = HCAHPS.Linear.Mean.Value,
+                        perc = HCAHPS.Answer.Percent,
+                        response_rate = Survey.Response.Rate.Percent
+)
+# Changing variable types
+hca2 <- hca2 %>% mutate(city = as.character(city),
+                        name = as.character(name),
+                        stars = as.character(stars),
+                        linmean = as.character(linmean),
+                        perc = as.character(perc),
+                        response_rate = as.numeric(response_rate))
+### Creating wide dataset
+# Create single variable that's the response to the question
+hca2 <- hca2 %>% mutate(stars = ifelse(stars == notapp | stars == notav, NA, stars),
+                        linmean = ifelse(linmean == notapp | linmean == notav, NA, linmean),
+                        perc = ifelse(perc == notapp | perc == notav, NA, perc))
+hca2 <- hca2 %>% 
+  mutate(answer = ifelse(is.na(stars) == TRUE & is.na(linmean) == TRUE, perc, 
+                         ifelse(is.na(linmean) == TRUE, stars, linmean)))
+# Remove any symbols from question (to be used as column names)
+hca2$descrip <- str_replace_all(str_replace_all(hca2$descrip, "\"", ""), " ", "")
+hca2$descrip <- str_replace_all(str_replace_all(hca2$descrip, "\\(", ""), "\\)", "")
+hca2$descrip <- str_replace_all(str_replace_all(hca2$descrip, ",", ""), "-", "")
+# Give each question it's own column
+hca_spread2 <- hca2 %>% spread(descrip, answer)
+# Create dataset where each hospital has one row
+hca_wide2 <- hca2 %>% select(id, name, state, county)
+hca_wide2 <- unique(hca_wide2)
+# Create list of column names to be used below
+qs2 <- names(hca_spread2)
+# Function to return the dataset with only column of interest, no missing values
+newcol2 <- function(colname2){
+  new1 <- hca_spread2 %>% select(id, matches(colname2))
+  new1 <- new1 %>% na.omit
+  return(new1)
+}
+# Join column to wide dataset via "id"
+for(n in 13:67){
+  hca_wide2 <- left_join(hca_wide2, newcol2(qs2[[n]]), by = "id")
+  print(paste("column \"", qs2[[n]], "\" joined", sep = ""))
+}
+hca_wide2$yvaluebp <- 5
+write.csv(hca_wide2, paste(path, "hca_wide2.csv", sep = ""), sep =",")
+hca_wide2 <- hca_wide2 %>% select(id,
+                                  name,
+                                  state,
+                                  county,
+                                  care_transition = Caretransitionlinearmeanscore,
+                                  clean = Cleanlinesslinearmeanscore,
+                                  quiet = Quietnesslinearmeanscore,
+                                  communication_medicine = Communicationaboutmedicineslinearmeanscore,
+                                  communication_doctor = Doctorcommunicationlinearmeanscore,
+                                  communication_nurse = Nursecommunicationlinearmeanscore,
+                                  responsiveness_staff = Staffresponsivenesslinearmeanscore,
+                                  discharge_info = Dischargeinformationlinearmeanscore,
+                                  pain_management = Painmanagementlinearmeanscore,
+                                  overall = Overallhospitalratinglinearmeanscore)
+hca_wide2$year <- 2015
+#####################################################################
+
+# select hca_wide variables of interest
+hca_wide <- hca_wide %>% select(id,
+                                  name,
+                                  state,
+                                  county,
+                                  care_transition = Caretransitionlinearmeanscore,
+                                  clean = Cleanlinesslinearmeanscore,
+                                  quiet = Quietnesslinearmeanscore,
+                                  communication_medicine = Communicationaboutmedicineslinearmeanscore,
+                                  communication_doctor = Doctorcommunicationlinearmeanscore,
+                                  communication_nurse = Nursecommunicationlinearmeanscore,
+                                  responsiveness_staff = Staffresponsivenesslinearmeanscore,
+                                  discharge_info = Dischargeinformationlinearmeanscore,
+                                  pain_management = Painmanagementlinearmeanscore,
+                                  overall = Overallhospitalratinglinearmeanscore)
+hca_wide$year <- 2017
+
+# combine datasets
+both_wide <- rbind(hca_wide, hca_wide2)
+
+# download 2013 vbp data
+vbp_2013 <- read.csv(paste(path, "vbp_2013.csv", sep = ""),
+                sep = ",", header = TRUE, fill = TRUE)
+vbp_2013$vbp13 <- 1
+vbp_2013 <- vbp_2013 %>% 
+  select(id = Provider.Number, vbp13)
+
+# download 2015 vbp data
+vbp_2015 <- read.csv(paste(path, "vbp_2015.csv", sep = ""),
+                     sep = ",", header = TRUE, fill = TRUE)
+vbp_2015$vbp15 <- 1
+vbp_2015 <- vbp_2015 %>% 
+  select(id = Provider.Number, vbp15)
+
+# join on vbp info
+  # 2017 vbp info
+both_wide <- left_join(both_wide, vbp, by = "id")
+both_wide <- both_wide %>% mutate(vbp17 = ifelse(is.na(vbp17) == TRUE, 0,1))
+
+both_wide$vbp17 <- as.factor(both_wide$vbp17)
+
+  # 2015 vbp info
+both_wide <- left_join(both_wide, vbp_2015, by = "id")
+both_wide <- both_wide %>% mutate(vbp15 = ifelse(is.na(vbp15) == TRUE, 0,1))
+
+both_wide$vbp15 <- as.factor(both_wide$vbp15)
+
+  # 2013 vbp info
+
+# indicators of when the hospital was/is in vbp program
+
+both_wide <- both_wide %>% mutate(newlyvbp15_17 = ifelse(vbp15 == 0 & vbp17 == 1, 1, 0),
+                                formervbp15_17 = ifelse(vbp15 == 1 & vbp17 == 0, 1, 0),
+                                alwaysvbp = ifelse(vbp15 == 1 & vbp17 == 1, 1, 0))
+
+# before / after joining vbp
+only_new15_17 <- both_wide %>% filter(newlyvbp15_17 == 1)
+only_new15_17 %>% 
+  ggplot(aes(x = as.factor(year), y = as.numeric(overall), col = as.factor(year))) +
+  geom_boxplot()
+
+# before / after leaving vbp
+only_fomer15_17 <- both_wide %>% filter(formervbp15_17 == 1)
+only_fomer15_17 %>% 
+  ggplot(aes(x = as.factor(year), y = as.numeric(overall), col = as.factor(year))) +
+  geom_boxplot()
+
+model2 <- lm(data = only_new15_17, overall ~ as.factor(id) + as.factor(year))
+summary(model2)
+
+model3 <- lm(data = both_wide, overall ~ as.factor(county) + 
+               as.factor(year) +
+               newlyvbp15_17*as.factor(year) + 
+               formervbp15_17*as.factor(year) +
+               alwaysvbp*as.factor(year)
+               )
+summary(model3)
+sum3 <- tidy(model3)
+
+model4 <- lm(data = both_wide, as.numeric(overall) ~ as.factor(county) + 
+               as.factor(year) +
+               newlyvbp15_17*as.factor(year) + 
+               formervbp15_17*as.factor(year) +
+               alwaysvbp*as.factor(year))
+summary(model4)
+sum4 <- tidy(model4)
+
+count(filter(both_wide, newlyvbp15_17 == 1))
+
+# list of metrics, create summary statistics of dif in scores
+metrics <- names(both_wide)
+metrics <- metrics[5:14]
+
+t1 <- both_wide %>% filter(as.factor(year) == 2017 & is.na(care_transition) == FALSE) %>% 
+    mutate(care_transition = as.numeric(care_transition)) %>% 
+    group_by(as.factor(vbp17)) %>% 
+    summarise(Care_Transition = mean(care_transition)) %>% 
+    spread(`as.factor(vbp17)`, Care_Transition) %>% 
+    mutate(metric = "Care_Transition")
+
+
+#####################################################################
+############## difference in means by metric, all hospitals
+
+
+sumtable <- as.data.frame(list("Metric", "VBP", "Non-VBP"))
+colnames(sumtable) <- c("Metric", "VBP", "Non-VBP")
+
+for(m in metrics){
+  new_sum <- both_wide %>% filter(as.factor(year) == 2017) %>% 
+    select(vbp17, matches(m))
+  new_sum[[m]] <- as.numeric(new_sum[[m]])
+  new_sum <- new_sum %>% na.omit 
+  new_sum_non_vbp <- new_sum[new_sum$vbp17 == 0,]
+  new_sum_vbp <- new_sum[new_sum$vbp17 == 1,]
+  new_sum1 <- mean(new_sum_non_vbp[[m]], na.rm = TRUE)
+  new_sum2 <- mean(new_sum_vbp[[m]], na.rm = TRUE)
+  new_row <- as.data.frame(list(as.character(m), as.character(new_sum2), as.character(new_sum1)))
+  colnames(new_row) <- c("Metric", "VBP", "Non-VBP")
+  sumtable <- rbind(sumtable, new_row)
+}
+
+sumtable <- sumtable[-1,]
+sumtable$VBP <- as.character.numeric_version(sumtable$VBP)
+sumtable$`Non-VBP` <- as.character.numeric_version(sumtable$`Non-VBP`)
+sumtable$Difference <- as.numeric(sumtable$VBP) - as.numeric(sumtable$`Non-VBP`)
+
+write.csv(sumtable, paste(path, "vbp_difs.csv"))
+
+#####################################################################
+############## difference in means by metric, recently vbp from 2015 - 2017
+
+sumtable2 <- as.data.frame(list("Metric", "2015", "2017"))
+colnames(sumtable2) <- c("Metric", "2015", "2017")
+
+for(m in metrics){
+  new_sum <- only_new15_17 %>%
+    select(year, matches(m))
+  new_sum[[m]] <- as.numeric(new_sum[[m]])
+  new_sum <- new_sum %>% na.omit 
+  new_sum_15 <- new_sum[new_sum$year == 2015,]
+  new_sum_17 <- new_sum[new_sum$year == 2017,]
+  new_sum1 <- mean(new_sum_15[[m]], na.rm = TRUE)
+  new_sum2 <- mean(new_sum_17[[m]], na.rm = TRUE)
+  new_row <- as.data.frame(list(as.character(m), as.character(new_sum2), as.character(new_sum1)))
+  colnames(new_row) <- c("Metric", "2015", "2017")
+  sumtable2 <- rbind(sumtable2, new_row)
+}
+
+sumtable2 <- sumtable2[-1,]
+sumtable2$`2017` <- as.character.numeric_version(sumtable2$`2017`)
+sumtable2$`2015` <- as.character.numeric_version(sumtable2$`2015`)
+sumtable2$Difference <- as.numeric(sumtable2$`2017`) - as.numeric(sumtable2$`2015`)
+
+write.csv(sumtable2, paste(path, "newvbp_difs.csv"))
+
+
+#####################################################################
+############## difference in means by metric, recently not vbp from 2015 - 2017
+sumtable3 <- as.data.frame(list("Metric", "2015", "2017"))
+colnames(sumtable3) <- c("Metric", "2015", "2017")
+
+for(m in metrics){
+  new_sum <- only_fomer15_17 %>%
+    select(year, matches(m))
+  new_sum[[m]] <- as.numeric(new_sum[[m]])
+  new_sum <- new_sum %>% na.omit 
+  new_sum_15 <- new_sum[new_sum$year == 2015,]
+  new_sum_17 <- new_sum[new_sum$year == 2017,]
+  new_sum1 <- mean(new_sum_15[[m]], na.rm = TRUE)
+  new_sum2 <- mean(new_sum_17[[m]], na.rm = TRUE)
+  new_row <- as.data.frame(list(as.character(m), as.character(new_sum2), as.character(new_sum1)))
+  colnames(new_row) <- c("Metric", "2015", "2017")
+  sumtable3 <- rbind(sumtable3, new_row)
+}
+
+sumtable3 <- sumtable3[-1,]
+sumtable3$`2017` <- as.character.numeric_version(sumtable3$`2017`)
+sumtable3$`2015` <- as.character.numeric_version(sumtable3$`2015`)
+sumtable3$Difference <- as.numeric(sumtable3$`2017`) - as.numeric(sumtable3$`2015`)
+write.csv(sumtable3, paste(path, "newnonvbp_difs.csv"))
+
+
+#####################################################################
+############## most important determinant in hospital
+model5 <- lm(data = hca_wide,
+             as.numeric(overall) ~ factor(state) + as.numeric(clean) + as.numeric(quiet) +
+               as.numeric(communication_medicine) + as.numeric(communication_doctor) + 
+               as.numeric(communication_nurse) + as.numeric(responsiveness_staff) + 
+               as.numeric(discharge_info) + as.numeric(pain_management) +
+               as.numeric(care_transition))
+summary(model5)
+table5 <- tidy(model5)
+table5b <- table5
+table5b <- table5b[53:61,]
+table5b <- table5b %>% na.omit
+table5b$term <- str_replace_all(str_replace_all(as.character(table5b$term), "\\(", ""), "\\)", "")
+table5b$term <- str_replace_all(str_replace_all(as.character(table5b$term), "as.numeric", ""), "\\)", "")
+table5b$term <- factor(table5b$term,
+                          levels = c("communication_nurse",
+                                     "care_transition",
+                                     "communication_doctor",
+                                     "quiet",
+                                     "discharge_info",
+                                     "pain_management",
+                                     "communication_medicine",
+                                     "clean",
+                                     "responsiveness_staff"),
+                          labels = c("Communication, Nurse",
+                                     "Care Transition",
+                                     "Communication, Doctor",
+                                     "Quietness",
+                                     "Discharge Info",
+                                     "Pain Management",
+                                     "Communication, Medicine",
+                                     "Cleanliness",
+                                     "Responsiveness, Staff"))
+table5b %>%  ggplot(aes(x = term, y = estimate, fill = abs(statistic))) +
+  geom_bar(stat = "identity") + 
+  coord_flip() +
+  labs(fill = "T-Statistic",
+       y = "Beta Coefficient",
+       x = "Mean Linear Score",
+       title = "Determinants of Overall Hospital Rating") +
+  theme_bw()
+
+
+
+
