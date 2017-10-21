@@ -104,7 +104,7 @@ There are three main take-aways I had from this introductory analysis:
 
 **1: The Data**
 
-The categories and questions that the data covers are very broad. While at a high level you could determine general areas that a hospital has poor reviews in, you wouldn't be able to diagnose the issue properly. I.e., you can tell somebody that they swing a golf club very poorly, but it would be more constructive to tell them to keep their head down, shoulders square, etc. It would be more useful for analysis, rather than having unspecific survey data, to have data that is 1) real time rather than retrospective, and 2) specific feedback. A platform that allows this would allow providers to identify actionable changes, instead of just identifying high level trends. 
+The categories and questions that the data covers are very broad. While at a high level you could determine general areas that a hospital has poor reviews in, you wouldn't be able to diagnose the issue properly. It would be more useful for analysis, rather than having unspecific survey data, to have data that is 1) real time rather than retrospective, and 2) specific feedback. A platform that allows this would allow providers to identify actionable changes, instead of just identifying high level trends. 
 
 **2: VBP Hospitals**
 
